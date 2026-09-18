@@ -1,10 +1,10 @@
-# AI Chat WebSocket（1.21.1 Fabric 客户端模组）
+# AI Chat WebSocket（ Fabric 客户端模组）
 
 让 AI 通过 WebSocket 接管你的聊天：模组把游戏里的聊天转发给你的 AI 服务，
 AI 生成回复后，模组再以玩家身份把回复发进聊天栏（被@时才回复，可配置）。
 
 - 仅客户端模组，服务器**不需要**装任何东西，装在你自己机器上。
-- 依赖：Fabric Loader 0.19.3+、**Fabric API**（1.21.1 版）、Java 21。
+- 依赖：Fabric Loader 0.19.3+、**Fabric API**
 
 ## 安装
 
