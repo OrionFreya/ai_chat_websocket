@@ -8,8 +8,8 @@ AI 生成回复后，模组再以玩家身份把回复发进聊天栏（被@时�
 
 ## 安装
 
-1. 下载 Fabric API（https://modrinth.com/mod/fabric-api 选 1.21.1 版）；
-2. 把 `fabric-api-xxx.jar` 和本模组的 `ai_chat_websocket-1.0.0-r3.jar`
+1. 下载 Fabric API（https://modrinth.com/mod/fabric-api）；
+2. 把 `fabric-api-xxx.jar` 和本模组的
    一起放进游戏目录的 `mods` 文件夹；
 3. 启动游戏进服即可。
 
