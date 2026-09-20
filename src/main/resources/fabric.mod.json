@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "id": "ai_chat_websocket",
+  "version": "${version}",
+  "name": "AI Chat WebSocket",
+  "description": "客户端 WebSocket 桥接：把聊天转发给 AI 服务，AI 被@时代替玩家回复聊天。",
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "cn.blockforge.generated.aichatwebsocket.AiChatWebsocketClient"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=0.19.3",
+    "minecraft": "~1.21.1",
+    "java": ">=21",
+    "fabric-api": "*"
+  }
+}
