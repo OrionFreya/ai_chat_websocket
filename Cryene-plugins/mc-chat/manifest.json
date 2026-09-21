@@ -1,0 +1,10 @@
+{
+  "apiVersion": 1,
+  "id": "mc-chat",
+  "name": "Minecraft 聊天桥",
+  "version": "1.0.0",
+  "description": "对接 Minecraft 客户端模组（ai_chat_websocket）：本机启动 WebSocket 服务，把游戏聊天接入 Agent 对话，Agent 回复以玩家身份发进游戏聊天栏。",
+  "author": "Cyrene",
+  "entry": "index.cjs",
+  "defaultEnabled": false
+}

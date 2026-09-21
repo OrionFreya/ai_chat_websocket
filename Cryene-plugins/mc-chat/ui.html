@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Minecraft 聊天桥</title>
+<style>
+  :root {
+    --bg: #fff9fc;
+    --card: #ffffff;
+    --line: #f3e4ec;
+    --text: #4a3340;
+    --muted: #9a8490;
+    --accent: #e76f9f;
+    --accent-dark: #d9578c;
+    --ok: #3f9d6e;
+    --warn: #d99a3f;
+    --err: #c9505a;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+    font-size: 14px;
+    padding: 18px 20px 24px;
+    user-select: none;
+  }
+  h1 { font-size: 18px; font-weight: 600; margin-bottom: 2px; }
+  .sub { color: var(--muted); font-size: 12px; margin-bottom: 16px; }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 12px;
+  }
+  .card h2 { font-size: 13px; font-weight: 600; margin-bottom: 10px; color: var(--accent-dark); }
+
+  .status-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--muted); flex: none; }
+  .dot.on { background: var(--ok); box-shadow: 0 0 0 3px rgba(63,157,110,.15); }
+  .dot.off { background: var(--err); }
+  .status-text { font-weight: 600; }
+  .kv { display: flex; justify-content: space-between; font-size: 12.5px; padding: 3px 0; color: var(--text); }
+  .kv span:first-child { color: var(--muted); }
+  .client-list { margin-top: 6px; font-size: 12.5px; }
+  .client-list .item { padding: 4px 8px; background: #fdf3f8; border-radius: 8px; margin: 4px 0; }
+
+  .field { margin-bottom: 10px; }
+  .field label { display: block; font-size: 12.5px; color: var(--muted); margin-bottom: 4px; }
+  .field input[type="text"], .field input[type="number"] {
+    width: 100%; padding: 8px 10px; border: 1px solid var(--line);
+    border-radius: 8px; font-size: 13px; background: #fff;
+    outline: none; color: var(--text);
+  }
+  .field input:focus { border-color: var(--accent); }
+  .check { display: flex; align-items: center; gap: 8px; margin: 8px 0; font-size: 13px; cursor: pointer; }
+  .check input { accent-color: var(--accent); width: 15px; height: 15px; }
+
+  .row { display: flex; gap: 10px; margin-top: 12px; }
+  button {
+    flex: 1; padding: 9px 0; border: none; border-radius: 10px;
+    font-size: 13.5px; font-weight: 600; cursor: pointer;
+    background: var(--accent); color: #fff; transition: background .15s;
+  }
+  button:hover { background: var(--accent-dark); }
+  button.secondary { background: #f6e3ec; color: var(--accent-dark); }
+  button.secondary:hover { background: #efd3e0; }
+  button:disabled { opacity: .55; cursor: not-allowed; }
+
+  .msg { font-size: 12.5px; margin-top: 10px; min-height: 16px; }
+  .msg.ok { color: var(--ok); }
+  .msg.err { color: var(--err); }
+
+  .tips { font-size: 12px; color: var(--muted); line-height: 1.7; }
+  .tips code {
+    background: #f6e3ec; color: var(--accent-dark); padding: 1px 5px;
+    border-radius: 5px; font-size: 11.5px;
+  }
+</style>
+</head>
+<body>
+  <h1>Minecraft 聊天桥</h1>
+  <div class="sub">把游戏聊天接入 Agent，回复以玩家身份发进聊天栏</div>
+
+  <div class="card">
+    <h2>服务状态</h2>
+    <div class="status-row">
+      <span class="dot" id="dot"></span>
+      <span class="status-text" id="statusText">读取中…</span>
+    </div>
+    <div id="statusDetail"></div>
+    <div class="client-list" id="clientList"></div>
+  </div>
+
+  <div class="card">
+    <h2>设置</h2>
+    <div class="field">
+      <label>监听地址</label>
+      <input type="text" id="host" value="127.0.0.1" />
+    </div>
+    <div class="field">
+      <label>端口（模组默认连 8765）</label>
+      <input type="number" id="port" value="8765" min="1" max="65535" />
+    </div>
+    <div class="field">
+      <label>回复最小间隔（毫秒，防刷屏，0 = 不限）</label>
+      <input type="number" id="minInterval" value="1000" min="0" max="10000" step="100" />
+    </div>
+    <label class="check"><input type="checkbox" id="broadcast" /> 回复广播给所有已连接客户端</label>
+    <label class="check"><input type="checkbox" id="onlyMentioned" /> 只在玩家 @ 你时才回应</label>
+    <div class="row">
+      <button id="saveBtn">保存并重启服务</button>
+      <button id="testBtn" class="secondary">发送测试消息</button>
+    </div>
+    <div class="msg" id="msg"></div>
+  </div>
+
+  <div class="card tips">
+    <h2>模组侧配合</h2>
+    游戏里确保模组连到本服务：
+    <code>/aiws url ws://127.0.0.1:8765</code><br />
+    <code>/aiws ai Cyrene</code>（设置被 @ 的名字，@ 错名字不会触发）<br />
+    <code>/aiws mode mention|all</code>（仅@转发 / 全部转发）<br />
+    <code>/aiws reply chat</code>（回复发进聊天栏）<br />
+    <code>/aiws autoconnect true</code>（进世界自动连接）
+  </div>
+
+  <script>
+    const { ipcRenderer } = require("electron");
+    const P = (n) => `plugin:mc-chat:${n}`;
+
+    function showMsg(text, type) {
+      const el = document.getElementById("msg");
+      el.textContent = text || "";
+      el.className = "msg " + (type || "");
+    }
+
+    function renderStatus(s) {
+      const dot = document.getElementById("dot");
+      const text = document.getElementById("statusText");
+      const detail = document.getElementById("statusDetail");
+      const list = document.getElementById("clientList");
+
+      if (s.state === "running") {
+        dot.className = "dot on";
+        text.textContent = "服务运行中";
+        detail.innerHTML =
+          `<div class="kv"><span>监听地址</span><span>ws://${s.host}:${s.port}</span></div>` +
+          `<div class="kv"><span>已连接客户端</span><span>${s.clients.length} 个</span></div>` +
+          `<div class="kv"><span>收到聊天 / 发出回复</span><span>${s.chatsReceived} / ${s.repliesSent}</span></div>` +
+          `<div class="kv"><span>抑制回声</span><span>${s.suppressedEchoes} 条（防循环）</span></div>` +
+          `<div class="kv"><span>模组 @ 名字</span><span>@${s.aiName || "AI"}</span></div>` +
+          `<div class="kv"><span>仅@回应 / 回复间隔</span><span>${s.respondOnlyMentioned ? "开" : "关"} / ${s.minReplyIntervalMs}ms</span></div>`;
+        list.innerHTML = s.clients.length
+          ? s.clients.map((c) => `<div class="item">${c.player || "未握手"}${c.modId ? ` — ${c.modId}@${c.modVersion || "?"}` : ""}</div>`).join("")
+          : '<div class="item" style="color:var(--muted)">等待模组客户端连接（进游戏后自动连）</div>';
+      } else {
+        dot.className = "dot off";
+        text.textContent = "服务未运行";
+        detail.innerHTML = `<div class="kv"><span>状态</span><span>请检查端口占用或修改端口后重试</span></div>`;
+        list.innerHTML = "";
+      }
+    }
+
+    async function refresh() {
+      try {
+        const s = await ipcRenderer.invoke(P("status"));
+        renderStatus(s);
+        const cfg = await ipcRenderer.invoke(P("getSettings"));
+        document.getElementById("host").value = cfg.host;
+        document.getElementById("port").value = cfg.port;
+        document.getElementById("minInterval").value = cfg.minReplyIntervalMs;
+        document.getElementById("broadcast").checked = cfg.broadcastReplies;
+        document.getElementById("onlyMentioned").checked = cfg.respondOnlyMentioned;
+      } catch (e) {
+        showMsg("读取状态失败：" + (e && e.message ? e.message : e), "err");
+      }
+    }
+
+    document.getElementById("saveBtn").addEventListener("click", async () => {
+      const btn = document.getElementById("saveBtn");
+      btn.disabled = true;
+      try {
+        await ipcRenderer.invoke(P("setSettings"), {
+          host: document.getElementById("host").value.trim(),
+          port: Number(document.getElementById("port").value),
+          minReplyIntervalMs: Number(document.getElementById("minInterval").value),
+          broadcastReplies: document.getElementById("broadcast").checked,
+          respondOnlyMentioned: document.getElementById("onlyMentioned").checked,
+        });
+        showMsg("设置已保存，服务已重启。", "ok");
+        await refresh();
+      } catch (e) {
+        showMsg("保存失败：" + (e && e.message ? e.message : e), "err");
+      } finally {
+        btn.disabled = false;
+      }
+    });
+
+    document.getElementById("testBtn").addEventListener("click", async () => {
+      try {
+        const r = await ipcRenderer.invoke(P("test"));
+        if (r.ok) showMsg("测试消息已发送，游戏里应该能看到 [AI-WS] 回复。", "ok");
+        else showMsg("发送失败：" + r.error, "err");
+      } catch (e) {
+        showMsg("测试失败：" + (e && e.message ? e.message : e), "err");
+      }
+    });
+
+    refresh();
+    setInterval(refresh, 2000);
+  </script>
+</body>
+</html>

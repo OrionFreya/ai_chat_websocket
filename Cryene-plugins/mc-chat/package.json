@@ -1,0 +1,10 @@
+{
+  "name": "mc-chat",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Cyrene plugin: bridge Minecraft client mod (ai_chat_websocket) chat into the agent conversation",
+  "main": "index.cjs",
+  "dependencies": {
+    "ws": "^8.18.0"
+  }
+}
