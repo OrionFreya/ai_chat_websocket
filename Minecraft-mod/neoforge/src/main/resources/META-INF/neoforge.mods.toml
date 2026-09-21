@@ -1,0 +1,22 @@
+modLoader="javafml"
+loaderVersion="${loader_version_range}"
+license="${mod_license}"
+[[mods]]
+modId="${mod_id}"
+version="${mod_version}"
+displayName="${mod_name}"
+authors="AutoMods"
+clientSideOnly=true
+description='''纯客户端 AI 聊天桥：把聊天经 WebSocket 转发给 AI 服务，回复以玩家身份发回聊天栏；对 TrChat 类聊天插件默认自动兼容（/aiws 配置，无需服务器安装任何内容）。'''
+[[dependencies.${mod_id}]]
+modId="neoforge"
+type="required"
+versionRange="[${neo_version},)"
+ordering="NONE"
+side="BOTH"
+[[dependencies.${mod_id}]]
+modId="minecraft"
+type="required"
+versionRange="${minecraft_version_range}"
+ordering="NONE"
+side="BOTH"
